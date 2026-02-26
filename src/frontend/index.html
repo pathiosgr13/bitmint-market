@@ -264,35 +264,26 @@ function drawNFT(canvas, seed, size=400) {
   return { style: STYLES[styleIdx], palette: paletteName, rarity };
 }
 
-// ── WALLET (FIXED) ──────────────────────────────────────────
+// ── WALLET ──────────────────────────────────────────────────
 async function connectWallet() {
   const btn = document.getElementById('walletBtn');
   const label = document.getElementById('walletLabel');
-
   if (typeof window.opnet === 'undefined') {
     showStatus('❌ OP_WALLET not found! Please install the OP_WALLET Chrome extension to connect.', 'error');
     return;
   }
-
   try {
     label.textContent = 'Connecting...';
     btn.disabled = true;
-
-    // Disconnect first so the approval popup always appears
-    try { await window.opnet.disconnect(); } catch(e) { /* ignore */ }
-
-    // Triggers the OP_WALLET approval popup
+    try { await window.opnet.disconnect(); } catch(e) {}
     const accounts = await window.opnet.requestAccounts();
-
     if (!accounts || accounts.length === 0) throw new Error('No accounts returned');
-
     walletAddress = accounts[0];
     btn.classList.add('connected');
     btn.disabled = false;
     label.textContent = walletAddress.slice(0,8) + '...' + walletAddress.slice(-6);
     showStatus('✅ Wallet connected: ' + walletAddress, 'success');
     loadContractStats();
-
   } catch(e) {
     btn.disabled = false;
     label.textContent = 'Connect Wallet';
@@ -312,23 +303,53 @@ async function mintNFT() {
   const btn = document.getElementById('mintBtn');
   const overlay = document.getElementById('mintingOverlay');
   const overlayMsg = document.getElementById('overlayMsg');
-  btn.disabled = true; overlay.classList.add('active');
+  btn.disabled = true;
+  overlay.classList.add('active');
   overlayMsg.textContent = 'Opening OP_WALLET...';
   showStatus('Opening OP_WALLET — please sign the mint transaction...', 'info');
   try {
     let txId = null;
     if (typeof window.opnet !== 'undefined') {
       overlayMsg.textContent = 'Sign in OP_WALLET...';
-      const result = await window.opnet.signAndBroadcastInteraction({
-        to: CONTRACT_ADDRESS,
-        calldata: encodeSelector('mint()'),
-      });
+
+      let result;
+      // Try signInteraction first (correct OP_WALLET API)
+      try {
+        result = await window.opnet.signInteraction({
+          contractAddress: CONTRACT_ADDRESS,
+          calldata: encodeSelector('mint()'),
+          satsPerVByte: 10,
+          maximumAllowedSatToSpend: 5000,
+        });
+        // If it returns a psbt, broadcast it
+        if (result && result.psbt) {
+          result = await window.opnet.broadcast(result.psbt);
+        }
+      } catch(e1) {
+        // Fallback: try signAndBroadcastInteraction
+        try {
+          result = await window.opnet.signAndBroadcastInteraction({
+            contractAddress: CONTRACT_ADDRESS,
+            calldata: encodeSelector('mint()'),
+            satsPerVByte: 10,
+            maximumAllowedSatToSpend: 5000,
+          });
+        } catch(e2) {
+          // Last fallback: original params format
+          result = await window.opnet.signAndBroadcastInteraction({
+            to: CONTRACT_ADDRESS,
+            calldata: encodeSelector('mint()'),
+          });
+        }
+      }
+
       txId = (result && (result.txid || result.txId || result.hash || result.id || result.result)) || String(result);
     } else {
       overlayMsg.textContent = 'Simulating mint...';
       await sleep(1800);
       txId = 'demo_' + Math.random().toString(16).slice(2,18);
     }
+
     const tokenId = totalMinted + 1;
     overlayMsg.textContent = 'Generating art...';
     await sleep(300);
@@ -341,12 +362,15 @@ async function mintNFT() {
     mintedNFTs.push(nft);
     localStorage.setItem('bitmint_nfts', JSON.stringify(mintedNFTs));
     totalMinted++;
-    updateUI(); overlay.classList.remove('active'); btn.disabled = false;
+    updateUI();
+    overlay.classList.remove('active');
+    btn.disabled = false;
     showStatus(`✅ Minted #${tokenId}! TX: ${String(txId).slice(0,20)}...`, 'success');
     showToast(`🎉 Minted BitMint #${tokenId} — ${traits.rarity}!`);
     fireConfetti();
   } catch(e) {
-    overlay.classList.remove('active'); btn.disabled = false;
+    overlay.classList.remove('active');
+    btn.disabled = false;
     showStatus('❌ Mint failed: ' + (e.message || String(e)), 'error');
   }
 }
@@ -364,7 +388,8 @@ function updateUI() {
   const pct = (totalMinted/MAX_SUPPLY*100).toFixed(1);
   document.getElementById('progressPct').textContent = pct+'%';
   document.getElementById('progressFill').style.width = pct+'%';
-  renderGallery(); renderCollection();
+  renderGallery();
+  renderCollection();
 }
 
 function renderGallery() {
