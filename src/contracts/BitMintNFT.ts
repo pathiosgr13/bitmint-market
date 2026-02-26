@@ -1,93 +1,67 @@
-import {
-    Address,
-    Blockchain,
-    BytesWriter,
-    Calldata,
-    encodeSelector,
-    MemorySlotData,
-    OP_NET,
-    Revert,
-    SafeMath,
-    Selector,
-    StoredU256,
-    StoredString,
-} from '@btc-vision/btc-runtime/runtime';
-import { u256 } from 'as-bignum/assembly';
+import { u256 } from '@btc-vision/as-bignum/assembly';
+import { BytesWriter } from '@btc-vision/btc-runtime/runtime/buffer/BytesWriter';
+import { Blockchain } from '@btc-vision/btc-runtime/runtime/env';
+import { Calldata } from '@btc-vision/btc-runtime/runtime/types';
+import { Address } from '@btc-vision/btc-runtime/runtime/types/Address';
+import { Revert } from '@btc-vision/btc-runtime/runtime/types/Revert';
+import { OP721 } from '@btc-vision/btc-runtime/runtime/contracts/OP721';
+import { OP721InitParameters } from '@btc-vision/btc-runtime/runtime/contracts/interfaces/OP721InitParameters';
+import { U256_BYTE_LENGTH } from '@btc-vision/btc-runtime/runtime/utils';
 
-@final
-export class BitMintNFT extends OP_NET {
-    private readonly nameSlot: u16 = 1;
-    private readonly symbolSlot: u16 = 2;
-    private readonly totalSupplySlot: u16 = 3;
-    private readonly maxSupplySlot: u16 = 4;
+const MINT_PRICE: u256 = u256.fromU32(1000); // 1000 satoshis per mint
 
-    private _name: StoredString;
-    private _symbol: StoredString;
-    private _totalSupply: StoredU256;
-    private _maxSupply: StoredU256;
-
+export class BitMintNFT extends OP721 {
     public constructor() {
         super();
-        this._name = new StoredString(this.nameSlot, 'BitMint NFT');
-        this._symbol = new StoredString(this.symbolSlot, 'BMNT');
-        this._totalSupply = new StoredU256(this.totalSupplySlot, u256.Zero);
-        this._maxSupply = new StoredU256(this.maxSupplySlot, u256.fromU32(1000));
-    }
 
-    public override callMethod(method: Selector, calldata: Calldata): BytesWriter {
-        switch (method) {
-            case encodeSelector('mint'):
-                return this.mint(calldata);
-            case encodeSelector('name'):
-                return this.name();
-            case encodeSelector('symbol'):
-                return this.symbol();
-            case encodeSelector('totalSupply'):
-                return this.totalSupply();
-            case encodeSelector('maxSupply'):
-                return this.maxSupply();
-            default:
-                throw new Revert('Unknown method');
+        // Initialize collection on first deploy
+        if (this._initialized.value.isZero()) {
+            const params = new OP721InitParameters(
+                'BitMint Market',                          // name
+                'BMM',                                     // symbol
+                u256.fromU32(1000),                        // maxSupply
+                'https://bitmint-market.vercel.app/nft/',  // baseURI
+                '',                                        // collectionBanner
+                '',                                        // collectionIcon
+                'Generative NFTs on Bitcoin via OP_NET',   // collectionDescription
+                'https://bitmint-market.vercel.app',       // collectionWebsite
+            );
+            this.instantiate(params, true);
         }
     }
 
-    private mint(_calldata: Calldata): BytesWriter {
-        const total = this._totalSupply.value;
-        const max = this._maxSupply.value;
+    // Public mint function — anyone can call this
+    @method()
+    @returns({ name: 'tokenId', type: ABIDataTypes.UINT256 })
+    public mint(_: Calldata): BytesWriter {
+        const totalSupply = this._totalSupply.value;
+        const maxSupply = this._maxSupply.value;
 
-        if (u256.ge(total, max)) {
-            throw new Revert('Max supply reached');
+        if (totalSupply >= maxSupply) {
+            throw new Revert('All NFTs have been minted');
         }
 
-        const newSupply = SafeMath.add(total, u256.fromU32(1));
-        this._totalSupply.value = newSupply;
+        const tokenId = this._nextTokenId.value;
+        const caller = Blockchain.tx.sender;
 
-        const response = new BytesWriter(32);
-        response.writeU256(newSupply);
-        return response;
+        // Mint the NFT to the caller
+        this._mint(caller, tokenId);
+
+        // Advance next token id
+        this._nextTokenId.value = u256.fromU64(tokenId.toU64() + 1);
+
+        const w = new BytesWriter(U256_BYTE_LENGTH);
+        w.writeU256(tokenId);
+        return w;
     }
 
-    private name(): BytesWriter {
-        const response = new BytesWriter(32);
-        response.writeStringWithLength(this._name.value);
-        return response;
-    }
-
-    private symbol(): BytesWriter {
-        const response = new BytesWriter(32);
-        response.writeStringWithLength(this._symbol.value);
-        return response;
-    }
-
-    private totalSupply(): BytesWriter {
-        const response = new BytesWriter(32);
-        response.writeU256(this._totalSupply.value);
-        return response;
-    }
-
-    private maxSupply(): BytesWriter {
-        const response = new BytesWriter(32);
-        response.writeU256(this._maxSupply.value);
-        return response;
+    // Return how many NFTs remain
+    @method()
+    @returns({ name: 'remaining', type: ABIDataTypes.UINT256 })
+    public remaining(_: Calldata): BytesWriter {
+        const remaining = this._maxSupply.value - this._totalSupply.value;
+        const w = new BytesWriter(U256_BYTE_LENGTH);
+        w.writeU256(remaining);
+        return w;
     }
 }

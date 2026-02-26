@@ -1,0 +1,10 @@
+{
+  "targets": {
+    "release": {
+      "outFile": "build/BitMintNFT.wasm",
+      "sourceMap": false,
+      "optimize": true
+    }
+  },
+  "entries": ["src/contracts/BitMintNFT.ts"]
+}
