@@ -35,9 +35,9 @@
   #walletBtn:hover { border-color: var(--accent); color: var(--accent); }
   #walletBtn:disabled { opacity: 0.5; cursor: not-allowed; }
   #walletBtn.connected { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.05); }
-  .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; display: none; animation: pulse 1.5s ease-in-out infinite; }
+  .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; display: none; animation: pulseAnim 1.5s ease-in-out infinite; }
   .connected .pulse { display: block; }
-  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+  @keyframes pulseAnim { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
   .hero { padding: 80px 0 60px; text-align: center; }
   .hero-eyebrow { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 20px; }
   .hero h1 { font-size: clamp(48px, 8vw, 96px); font-weight: 800; line-height: 0.95; letter-spacing: -3px; margin-bottom: 24px; }
@@ -50,8 +50,8 @@
   @media (max-width: 768px) { .mint-layout { grid-template-columns: 1fr; } }
   .preview-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; position: relative; }
   .preview-card canvas { width: 100%; display: block; }
-  .preview-overlay { position: absolute; inset: 0; background: rgba(8,10,15,0.85); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; opacity: 0; transition: opacity 0.3s; }
-  .preview-overlay.active { opacity: 1; }
+  .preview-overlay { position: absolute; inset: 0; background: rgba(8,10,15,0.85); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .preview-overlay.active { opacity: 1; pointer-events: all; }
   .spinner { width: 36px; height: 36px; border: 3px solid rgba(247,147,26,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .preview-overlay span { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); }
@@ -72,8 +72,7 @@
   .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); width: 0%; }
   #mintBtn { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; padding: 18px 32px; background: var(--accent); color: #000; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; letter-spacing: 0.5px; }
-  #mintBtn::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: background 0.2s; }
-  #mintBtn:hover::after { background: rgba(255,255,255,0.1); }
+  #mintBtn:hover { opacity: 0.9; }
   #mintBtn:active { transform: scale(0.98); }
   #mintBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   #statusMsg { font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 16px; border-radius: 8px; display: none; line-height: 1.5; word-break: break-all; }
@@ -133,6 +132,7 @@
 
 <main>
   <div class="container">
+
     <div class="hero">
       <div class="hero-eyebrow">OP_NET Vibecoding Challenge 2026</div>
       <h1>Generative NFTs<br><span class="outline">on Bitcoin</span></h1>
@@ -149,14 +149,13 @@
       <button class="tab" onclick="switchTab('collection')">My Collection</button>
     </div>
 
-    <!-- MINT TAB -->
     <div class="tab-content active" id="tab-mint">
       <div class="mint-layout">
         <div class="preview-card">
           <canvas id="previewCanvas" width="400" height="400"></canvas>
           <div class="preview-overlay" id="mintingOverlay">
             <div class="spinner"></div>
-            <span id="overlayMsg">Waiting for wallet...</span>
+            <span id="overlayMsg">Processing...</span>
           </div>
           <div class="traits">
             <div class="trait"><div class="trait-label">Style</div><div class="trait-value" id="traitStyle">—</div></div>
@@ -183,19 +182,18 @@
       </div>
     </div>
 
-    <!-- GALLERY TAB -->
     <div class="tab-content" id="tab-gallery">
       <div class="section-title">All Minted NFTs</div>
       <div class="section-sub">The full collection — every NFT minted on-chain</div>
       <div class="gallery-grid" id="galleryGrid"><div class="empty-gallery">No NFTs minted yet. Be the first!</div></div>
     </div>
 
-    <!-- COLLECTION TAB -->
     <div class="tab-content" id="tab-collection">
       <div class="section-title">My Collection</div>
       <div class="section-sub">NFTs owned by your connected wallet</div>
       <div class="gallery-grid" id="collectionGrid"><div class="empty-gallery">Connect your wallet to see your NFTs</div></div>
     </div>
+
   </div>
 </main>
 
@@ -214,6 +212,17 @@ let walletAddress = null;
 let mintedNFTs = JSON.parse(localStorage.getItem('bitmint_nfts') || '[]');
 let totalMinted = mintedNFTs.length;
 
+// ── HELPERS ─────────────────────────────────────────────────
+function el(id) { return document.getElementById(id); }
+function showStatus(msg, type) {
+  const e = el('statusMsg');
+  if (!e) return;
+  e.textContent = msg;
+  e.className = type + ' show';
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── GENERATIVE ART ───────────────────────────────────────────
 const STYLES = ['Circuit','Geometric','Waves','Radial','Glitch'];
 const PALETTES = {
   Bitcoin: ['#f7931a','#ffb347','#ff6b00','#1a0a00'],
@@ -231,10 +240,14 @@ function hashSeed(str) {
   return Math.abs(h);
 }
 
-function drawNFT(canvas, seed, size=400) {
+function drawNFT(canvas, seed, size) {
+  size = size || 400;
   canvas.width = size; canvas.height = size;
   const ctx = canvas.getContext('2d');
-  const rng = (() => { let s = hashSeed(String(seed)); return () => { s ^= s<<13; s ^= s>>17; s ^= s<<5; return (s>>>0)/0xFFFFFFFF; }; })();
+  const rng = (function() {
+    let s = hashSeed(String(seed));
+    return function() { s ^= s<<13; s ^= s>>17; s ^= s<<5; return (s>>>0)/0xFFFFFFFF; };
+  })();
   const styleIdx = Math.floor(rng()*STYLES.length);
   const paletteName = PALETTE_NAMES[Math.floor(rng()*PALETTE_NAMES.length)];
   const palette = PALETTES[paletteName];
@@ -245,75 +258,87 @@ function drawNFT(canvas, seed, size=400) {
   const style = STYLES[styleIdx];
   if (style==='Circuit') {
     ctx.strokeStyle=palette[0]; ctx.lineWidth=1.5;
-    for(let i=0;i<30;i++){ctx.globalAlpha=0.3+rng()*0.5;const x=Math.floor(rng()*10)*(size/10),y=Math.floor(rng()*10)*(size/10),w=(1+Math.floor(rng()*4))*(size/10),h=(1+Math.floor(rng()*4))*(size/10);ctx.beginPath();ctx.rect(x,y,w,h);ctx.stroke();}
+    for(var i=0;i<30;i++){ctx.globalAlpha=0.3+rng()*0.5;var x=Math.floor(rng()*10)*(size/10),y=Math.floor(rng()*10)*(size/10),w=(1+Math.floor(rng()*4))*(size/10),h=(1+Math.floor(rng()*4))*(size/10);ctx.beginPath();ctx.rect(x,y,w,h);ctx.stroke();}
     ctx.globalAlpha=1;
-    for(let i=0;i<20;i++){ctx.fillStyle=palette[Math.floor(rng()*3)];ctx.globalAlpha=0.8;const x=rng()*size,y=rng()*size;ctx.beginPath();ctx.arc(x,y,3+rng()*5,0,Math.PI*2);ctx.fill();}
+    for(var i=0;i<20;i++){ctx.fillStyle=palette[Math.floor(rng()*3)];ctx.globalAlpha=0.8;var x=rng()*size,y=rng()*size;ctx.beginPath();ctx.arc(x,y,3+rng()*5,0,Math.PI*2);ctx.fill();}
   } else if (style==='Geometric') {
-    for(let i=0;i<15;i++){ctx.globalAlpha=0.2+rng()*0.6;ctx.fillStyle=palette[Math.floor(rng()*palette.length)];const x=rng()*size,y=rng()*size,r=20+rng()*80,sides=3+Math.floor(rng()*5);ctx.beginPath();ctx.moveTo(x+r*Math.cos(0),y+r*Math.sin(0));for(let j=1;j<=sides;j++)ctx.lineTo(x+r*Math.cos(j*2*Math.PI/sides),y+r*Math.sin(j*2*Math.PI/sides));ctx.closePath();ctx.fill();}
+    for(var i=0;i<15;i++){ctx.globalAlpha=0.2+rng()*0.6;ctx.fillStyle=palette[Math.floor(rng()*palette.length)];var x=rng()*size,y=rng()*size,r=20+rng()*80,sides=3+Math.floor(rng()*5);ctx.beginPath();ctx.moveTo(x+r*Math.cos(0),y+r*Math.sin(0));for(var j=1;j<=sides;j++)ctx.lineTo(x+r*Math.cos(j*2*Math.PI/sides),y+r*Math.sin(j*2*Math.PI/sides));ctx.closePath();ctx.fill();}
   } else if (style==='Waves') {
-    for(let i=0;i<12;i++){ctx.beginPath();ctx.globalAlpha=0.4+rng()*0.4;ctx.strokeStyle=palette[i%palette.length];ctx.lineWidth=2+rng()*4;const amp=20+rng()*60,freq=0.005+rng()*0.02,yBase=rng()*size;ctx.moveTo(0,yBase);for(let x=0;x<size;x+=4)ctx.lineTo(x,yBase+amp*Math.sin(x*freq+i));ctx.stroke();}
+    for(var i=0;i<12;i++){ctx.beginPath();ctx.globalAlpha=0.4+rng()*0.4;ctx.strokeStyle=palette[i%palette.length];ctx.lineWidth=2+rng()*4;var amp=20+rng()*60,freq=0.005+rng()*0.02,yBase=rng()*size;ctx.moveTo(0,yBase);for(var x=0;x<size;x+=4)ctx.lineTo(x,yBase+amp*Math.sin(x*freq+i));ctx.stroke();}
   } else if (style==='Radial') {
-    const cx=size/2,cy=size/2;
-    for(let i=0;i<20;i++){ctx.globalAlpha=0.15+rng()*0.4;const grd=ctx.createRadialGradient(cx,cy,i*10,cx,cy,i*20+30);grd.addColorStop(0,palette[i%palette.length]);grd.addColorStop(1,'transparent');ctx.fillStyle=grd;ctx.beginPath();ctx.arc(cx,cy,i*20+30,0,Math.PI*2);ctx.fill();}
+    var cx=size/2,cy=size/2;
+    for(var i=0;i<20;i++){ctx.globalAlpha=0.15+rng()*0.4;var grd=ctx.createRadialGradient(cx,cy,i*10,cx,cy,i*20+30);grd.addColorStop(0,palette[i%palette.length]);grd.addColorStop(1,'transparent');ctx.fillStyle=grd;ctx.beginPath();ctx.arc(cx,cy,i*20+30,0,Math.PI*2);ctx.fill();}
   } else {
-    for(let i=0;i<size;i+=8+Math.floor(rng()*16)){ctx.globalAlpha=0.3+rng()*0.5;ctx.fillStyle=palette[Math.floor(rng()*palette.length)];const w=10+rng()*200;ctx.fillRect(rng()*size-w/2,i,w,4+rng()*10);}
+    for(var i=0;i<size;i+=8+Math.floor(rng()*16)){ctx.globalAlpha=0.3+rng()*0.5;ctx.fillStyle=palette[Math.floor(rng()*palette.length)];var w=10+rng()*200;ctx.fillRect(rng()*size-w/2,i,w,4+rng()*10);}
     ctx.globalAlpha=0.4;ctx.fillStyle=palette[0];ctx.fillRect(size*0.2,size*0.2,size*0.6,size*0.6);
     ctx.globalAlpha=1;ctx.strokeStyle=palette[1];ctx.lineWidth=2;ctx.strokeRect(size*0.2,size*0.2,size*0.6,size*0.6);
   }
-  ctx.globalAlpha=1;ctx.fillStyle='rgba(255,255,255,0.08)';ctx.font=`bold ${size*0.18}px monospace`;ctx.textAlign='center';ctx.fillText(`#${seed}`,size/2,size/2+size*0.07);
-  return { style: STYLES[styleIdx], palette: paletteName, rarity };
+  ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(255,255,255,0.08)';
+  ctx.font='bold '+(size*0.18)+'px monospace';
+  ctx.textAlign='center';
+  ctx.fillText('#'+seed, size/2, size/2+size*0.07);
+  return { style: STYLES[styleIdx], palette: paletteName, rarity: rarity };
 }
 
-// ── WALLET ──────────────────────────────────────────────────
+// ── WALLET ───────────────────────────────────────────────────
 async function connectWallet() {
-  const btn = document.getElementById('walletBtn');
-  const label = document.getElementById('walletLabel');
+  var btn = el('walletBtn');
+  var label = el('walletLabel');
+  if (!btn || !label) return;
+
   if (typeof window.opnet === 'undefined') {
-    showStatus('❌ OP_WALLET not found! Please install the OP_WALLET Chrome extension to connect.', 'error');
+    showStatus('❌ OP_WALLET not found! Please install the OP_WALLET Chrome extension.', 'error');
     return;
   }
+
   try {
     label.textContent = 'Connecting...';
     btn.disabled = true;
+
     try { await window.opnet.disconnect(); } catch(e) {}
-    const accounts = await window.opnet.requestAccounts();
+
+    var accounts = await window.opnet.requestAccounts();
     if (!accounts || accounts.length === 0) throw new Error('No accounts returned');
+
     walletAddress = accounts[0];
     btn.classList.add('connected');
     btn.disabled = false;
     label.textContent = walletAddress.slice(0,8) + '...' + walletAddress.slice(-6);
-    showStatus('✅ Wallet connected: ' + walletAddress, 'success');
-    loadContractStats();
+    showStatus('✅ Wallet connected!', 'success');
+    updateUI();
+
   } catch(e) {
-    btn.disabled = false;
-    label.textContent = 'Connect Wallet';
+    if (btn) { btn.disabled = false; }
+    if (label) { label.textContent = 'Connect Wallet'; }
     if (e.code === 4001) {
-      showStatus('⚠️ Connection rejected. Please approve in OP_WALLET and try again.', 'error');
+      showStatus('⚠️ Rejected. Please approve in OP_WALLET.', 'error');
     } else {
       showStatus('❌ Error: ' + (e.message || String(e)), 'error');
     }
   }
 }
 
-function loadContractStats() { updateUI(); }
-
-// ── MINT ────────────────────────────────────────────────────
+// ── MINT ─────────────────────────────────────────────────────
 async function mintNFT() {
   if (!walletAddress) { showStatus('Please connect your wallet first!', 'error'); return; }
-  const btn = document.getElementById('mintBtn');
-  const overlay = document.getElementById('mintingOverlay');
-  const overlayMsg = document.getElementById('overlayMsg');
-  btn.disabled = true;
-  overlay.classList.add('active');
-  overlayMsg.textContent = 'Opening OP_WALLET...';
-  showStatus('Opening OP_WALLET — please sign the mint transaction...', 'info');
-  try {
-    let txId = null;
-    if (typeof window.opnet !== 'undefined') {
-      overlayMsg.textContent = 'Sign in OP_WALLET...';
 
-      let result;
-      // Try signInteraction first (correct OP_WALLET API)
+  var btn = el('mintBtn');
+  var overlay = el('mintingOverlay');
+  var overlayMsg = el('overlayMsg');
+
+  if (btn) btn.disabled = true;
+  if (overlay) overlay.classList.add('active');
+  if (overlayMsg) overlayMsg.textContent = 'Opening OP_WALLET...';
+  showStatus('Opening OP_WALLET — please sign the mint transaction...', 'info');
+
+  try {
+    var txId = null;
+
+    if (typeof window.opnet !== 'undefined') {
+      if (overlayMsg) overlayMsg.textContent = 'Sign in OP_WALLET...';
+
+      var result;
       try {
         result = await window.opnet.signInteraction({
           contractAddress: CONTRACT_ADDRESS,
@@ -321,12 +346,10 @@ async function mintNFT() {
           satsPerVByte: 10,
           maximumAllowedSatToSpend: 5000,
         });
-        // If it returns a psbt, broadcast it
         if (result && result.psbt) {
           result = await window.opnet.broadcast(result.psbt);
         }
       } catch(e1) {
-        // Fallback: try signAndBroadcastInteraction
         try {
           result = await window.opnet.signAndBroadcastInteraction({
             contractAddress: CONTRACT_ADDRESS,
@@ -335,7 +358,6 @@ async function mintNFT() {
             maximumAllowedSatToSpend: 5000,
           });
         } catch(e2) {
-          // Last fallback: original params format
           result = await window.opnet.signAndBroadcastInteraction({
             to: CONTRACT_ADDRESS,
             calldata: encodeSelector('mint()'),
@@ -344,103 +366,143 @@ async function mintNFT() {
       }
 
       txId = (result && (result.txid || result.txId || result.hash || result.id || result.result)) || String(result);
+
     } else {
-      overlayMsg.textContent = 'Simulating mint...';
+      if (overlayMsg) overlayMsg.textContent = 'Simulating...';
       await sleep(1800);
       txId = 'demo_' + Math.random().toString(16).slice(2,18);
     }
 
-    const tokenId = totalMinted + 1;
-    overlayMsg.textContent = 'Generating art...';
+    var tokenId = totalMinted + 1;
+    if (overlayMsg) overlayMsg.textContent = 'Generating art...';
     await sleep(300);
-    const preview = document.getElementById('previewCanvas');
-    const traits = drawNFT(preview, tokenId);
-    document.getElementById('traitStyle').textContent = traits.style;
-    document.getElementById('traitPalette').textContent = traits.palette;
-    document.getElementById('traitRarity').textContent = traits.rarity;
-    const nft = { id: tokenId, owner: walletAddress, traits, txId, ts: Date.now() };
+
+    var preview = el('previewCanvas');
+    var traits = preview ? drawNFT(preview, tokenId) : { style: 'Glitch', palette: 'Bitcoin', rarity: 'Common' };
+
+    var ts = el('traitStyle'); if (ts) ts.textContent = traits.style;
+    var tp = el('traitPalette'); if (tp) tp.textContent = traits.palette;
+    var tr = el('traitRarity'); if (tr) tr.textContent = traits.rarity;
+
+    var nft = { id: tokenId, owner: walletAddress, traits: traits, txId: txId, ts: Date.now() };
     mintedNFTs.push(nft);
     localStorage.setItem('bitmint_nfts', JSON.stringify(mintedNFTs));
     totalMinted++;
+
     updateUI();
-    overlay.classList.remove('active');
-    btn.disabled = false;
-    showStatus(`✅ Minted #${tokenId}! TX: ${String(txId).slice(0,20)}...`, 'success');
-    showToast(`🎉 Minted BitMint #${tokenId} — ${traits.rarity}!`);
+    if (overlay) overlay.classList.remove('active');
+    if (btn) btn.disabled = false;
+
+    showStatus('✅ Minted #' + tokenId + '! TX: ' + String(txId).slice(0,20) + '...', 'success');
+    showToast('🎉 Minted BitMint #' + tokenId + ' — ' + traits.rarity + '!');
     fireConfetti();
+
   } catch(e) {
-    overlay.classList.remove('active');
-    btn.disabled = false;
+    if (overlay) overlay.classList.remove('active');
+    if (btn) btn.disabled = false;
     showStatus('❌ Mint failed: ' + (e.message || String(e)), 'error');
   }
 }
 
 function encodeSelector(sig) {
-  let hash = 0x811c9dc5;
-  for (let i=0;i<sig.length;i++){hash^=sig.charCodeAt(i);hash=(hash*0x01000193)>>>0;}
+  var hash = 0x811c9dc5;
+  for (var i = 0; i < sig.length; i++) { hash ^= sig.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }
   return hash.toString(16).padStart(8,'0');
 }
-function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
-// ── UI ──────────────────────────────────────────────────────
+// ── UI ───────────────────────────────────────────────────────
 function updateUI() {
-  document.getElementById('statMinted').textContent = totalMinted.toLocaleString();
-  const pct = (totalMinted/MAX_SUPPLY*100).toFixed(1);
-  document.getElementById('progressPct').textContent = pct+'%';
-  document.getElementById('progressFill').style.width = pct+'%';
+  var sm = el('statMinted'); if (sm) sm.textContent = totalMinted.toLocaleString();
+  var pct = (totalMinted / MAX_SUPPLY * 100).toFixed(1);
+  var pp = el('progressPct'); if (pp) pp.textContent = pct + '%';
+  var pf = el('progressFill'); if (pf) pf.style.width = pct + '%';
   renderGallery();
   renderCollection();
 }
 
 function renderGallery() {
-  const grid = document.getElementById('galleryGrid');
-  if (mintedNFTs.length===0){grid.innerHTML='<div class="empty-gallery">No NFTs minted yet. Be the first!</div>';return;}
-  grid.innerHTML='';
-  mintedNFTs.slice().reverse().forEach(nft=>{
-    const card=document.createElement('div');card.className='nft-card';
-    card.innerHTML=`<canvas id="gcard_${nft.id}" width="200" height="200"></canvas><div class="nft-card-info"><div class="nft-card-name">BitMint #${nft.id}</div><div class="nft-card-id">${nft.traits.style} · ${nft.traits.palette}</div><span class="rarity-badge rarity-${nft.traits.rarity}">${nft.traits.rarity}</span></div>`;
+  var grid = el('galleryGrid');
+  if (!grid) return;
+  if (mintedNFTs.length === 0) { grid.innerHTML = '<div class="empty-gallery">No NFTs minted yet. Be the first!</div>'; return; }
+  grid.innerHTML = '';
+  mintedNFTs.slice().reverse().forEach(function(nft) {
+    var card = document.createElement('div');
+    card.className = 'nft-card';
+    card.innerHTML = '<canvas id="gcard_'+nft.id+'" width="200" height="200"></canvas><div class="nft-card-info"><div class="nft-card-name">BitMint #'+nft.id+'</div><div class="nft-card-id">'+nft.traits.style+' · '+nft.traits.palette+'</div><span class="rarity-badge rarity-'+nft.traits.rarity+'">'+nft.traits.rarity+'</span></div>';
     grid.appendChild(card);
-    requestAnimationFrame(()=>drawNFT(document.getElementById('gcard_'+nft.id),nft.id,200));
+    requestAnimationFrame(function() { var c = el('gcard_'+nft.id); if (c) drawNFT(c, nft.id, 200); });
   });
 }
 
 function renderCollection() {
-  const grid = document.getElementById('collectionGrid');
-  if (!walletAddress){grid.innerHTML='<div class="empty-gallery">Connect your wallet to see your NFTs</div>';return;}
-  const mine = mintedNFTs.filter(n=>n.owner===walletAddress);
-  if (mine.length===0){grid.innerHTML='<div class="empty-gallery">You haven\'t minted any NFTs yet!</div>';return;}
-  grid.innerHTML='';
-  mine.slice().reverse().forEach(nft=>{
-    const card=document.createElement('div');card.className='nft-card';
-    card.innerHTML=`<canvas id="ccard_${nft.id}" width="200" height="200"></canvas><div class="nft-card-info"><div class="nft-card-name">BitMint #${nft.id}</div><div class="nft-card-id">${nft.traits.style} · ${nft.traits.palette}</div><span class="rarity-badge rarity-${nft.traits.rarity}">${nft.traits.rarity}</span></div>`;
+  var grid = el('collectionGrid');
+  if (!grid) return;
+  if (!walletAddress) { grid.innerHTML = '<div class="empty-gallery">Connect your wallet to see your NFTs</div>'; return; }
+  var mine = mintedNFTs.filter(function(n) { return n.owner === walletAddress; });
+  if (mine.length === 0) { grid.innerHTML = '<div class="empty-gallery">You haven\'t minted any NFTs yet!</div>'; return; }
+  grid.innerHTML = '';
+  mine.slice().reverse().forEach(function(nft) {
+    var card = document.createElement('div');
+    card.className = 'nft-card';
+    card.innerHTML = '<canvas id="ccard_'+nft.id+'" width="200" height="200"></canvas><div class="nft-card-info"><div class="nft-card-name">BitMint #'+nft.id+'</div><div class="nft-card-id">'+nft.traits.style+' · '+nft.traits.palette+'</div><span class="rarity-badge rarity-'+nft.traits.rarity+'">'+nft.traits.rarity+'</span></div>';
     grid.appendChild(card);
-    requestAnimationFrame(()=>drawNFT(document.getElementById('ccard_'+nft.id),nft.id,200));
+    requestAnimationFrame(function() { var c = el('ccard_'+nft.id); if (c) drawNFT(c, nft.id, 200); });
   });
 }
 
-function showStatus(msg,type){const el=document.getElementById('statusMsg');el.textContent=msg;el.className=`${type} show`;}
-let toastTimer;
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),4000);}
-
-function switchTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>{const tabs=['mint','gallery','collection'];t.classList.toggle('active',tabs[i]===name);});
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  if(name==='gallery')renderGallery();
-  if(name==='collection')renderCollection();
+// ── TOAST ────────────────────────────────────────────────────
+var toastTimer;
+function showToast(msg) {
+  var t = el('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 4000);
 }
 
-function fireConfetti(){
-  const canvas=document.getElementById('confettiCanvas');const ctx=canvas.getContext('2d');
-  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
-  const pieces=[];const colors=['#f7931a','#ffb347','#e63946','#4361ee','#00ff88','#ff006e'];
-  for(let i=0;i<100;i++)pieces.push({x:Math.random()*canvas.width,y:-10,r:4+Math.random()*6,color:colors[Math.floor(Math.random()*colors.length)],vx:(Math.random()-0.5)*6,vy:3+Math.random()*5,alpha:1});
-  function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);let alive=false;pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.alpha-=0.012;if(p.alpha>0){alive=true;ctx.globalAlpha=p.alpha;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}});ctx.globalAlpha=1;if(alive)requestAnimationFrame(animate);else ctx.clearRect(0,0,canvas.width,canvas.height);}
+// ── TABS ─────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t, i) {
+    var tabs = ['mint','gallery','collection'];
+    t.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+  var tc = el('tab-' + name);
+  if (tc) tc.classList.add('active');
+  if (name === 'gallery') renderGallery();
+  if (name === 'collection') renderCollection();
+}
+
+// ── CONFETTI ─────────────────────────────────────────────────
+function fireConfetti() {
+  var canvas = el('confettiCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  var pieces = [];
+  var colors = ['#f7931a','#ffb347','#e63946','#4361ee','#00ff88','#ff006e'];
+  for (var i = 0; i < 100; i++) {
+    pieces.push({ x: Math.random()*canvas.width, y: -10, r: 4+Math.random()*6, color: colors[Math.floor(Math.random()*colors.length)], vx: (Math.random()-0.5)*6, vy: 3+Math.random()*5, alpha: 1 });
+  }
+  function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    var alive = false;
+    pieces.forEach(function(p) {
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.alpha-=0.012;
+      if (p.alpha > 0) { alive=true; ctx.globalAlpha=p.alpha; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+    });
+    ctx.globalAlpha = 1;
+    if (alive) requestAnimationFrame(animate);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
   animate();
 }
 
-window.addEventListener('load',()=>{
-  drawNFT(document.getElementById('previewCanvas'),Math.floor(Math.random()*9999)+1);
+// ── INIT ─────────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  var preview = el('previewCanvas');
+  if (preview) drawNFT(preview, Math.floor(Math.random()*9999)+1);
   updateUI();
 });
 </script>
