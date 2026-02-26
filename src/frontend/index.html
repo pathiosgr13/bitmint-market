@@ -17,454 +17,94 @@
     --green: #00ff88;
     --card: #111622;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Grid bg */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image:
-      linear-gradient(rgba(247,147,26,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(247,147,26,0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Orbs */
-  .orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.15;
-    pointer-events: none;
-    z-index: 0;
-    animation: drift 12s ease-in-out infinite;
-  }
-  .orb1 { width: 500px; height: 500px; background: #f7931a; top: -200px; right: -100px; animation-delay: 0s; }
+  body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(247,147,26,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(247,147,26,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+  .orb { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.15; pointer-events: none; z-index: 0; animation: drift 12s ease-in-out infinite; }
+  .orb1 { width: 500px; height: 500px; background: #f7931a; top: -200px; right: -100px; }
   .orb2 { width: 400px; height: 400px; background: #e63946; bottom: -150px; left: -100px; animation-delay: -4s; }
   .orb3 { width: 300px; height: 300px; background: #4361ee; top: 50%; left: 40%; animation-delay: -8s; }
-
-  @keyframes drift {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(30px, -30px) scale(1.05); }
-    66% { transform: translate(-20px, 20px) scale(0.95); }
-  }
-
-  /* Layout */
+  @keyframes drift { 0%, 100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-30px) scale(1.05); } 66% { transform: translate(-20px,20px) scale(0.95); } }
   .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
-
-  /* Header */
-  header {
-    padding: 20px 0;
-    border-bottom: 1px solid var(--border);
-    position: relative; z-index: 10;
-  }
-  .header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .logo {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-  }
+  header { padding: 20px 0; border-bottom: 1px solid var(--border); position: relative; z-index: 10; }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
   .logo span { color: var(--accent); }
-
-  .net-badge {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    padding: 3px 8px;
-    background: rgba(247,147,26,0.1);
-    border: 1px solid rgba(247,147,26,0.3);
-    border-radius: 4px;
-    color: var(--accent);
-    margin-left: 10px;
-  }
-
-  #walletBtn {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    padding: 10px 20px;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .net-badge { font-family: 'Space Mono', monospace; font-size: 10px; padding: 3px 8px; background: rgba(247,147,26,0.1); border: 1px solid rgba(247,147,26,0.3); border-radius: 4px; color: var(--accent); margin-left: 10px; }
+  #walletBtn { font-family: 'Space Mono', monospace; font-size: 12px; padding: 10px 20px; background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
   #walletBtn:hover { border-color: var(--accent); color: var(--accent); }
-  #walletBtn.connected {
-    border-color: var(--green);
-    color: var(--green);
-    background: rgba(0,255,136,0.05);
-  }
-  .pulse {
-    width: 8px; height: 8px;
-    background: var(--green);
-    border-radius: 50%;
-    display: none;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
+  #walletBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #walletBtn.connected { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.05); }
+  .pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; display: none; animation: pulse 1.5s ease-in-out infinite; }
   .connected .pulse { display: block; }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(1.3); }
-  }
-
-  /* Hero */
-  .hero {
-    padding: 80px 0 60px;
-    text-align: center;
-  }
-  .hero-eyebrow {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 20px;
-  }
-  .hero h1 {
-    font-size: clamp(48px, 8vw, 96px);
-    font-weight: 800;
-    line-height: 0.95;
-    letter-spacing: -3px;
-    margin-bottom: 24px;
-  }
-  .hero h1 .outline {
-    -webkit-text-stroke: 2px var(--accent);
-    color: transparent;
-  }
-  .hero p {
-    font-size: 17px;
-    color: var(--muted);
-    max-width: 480px;
-    margin: 0 auto 40px;
-    line-height: 1.6;
-  }
-
-  /* Contract badge */
-  .contract-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 16px;
-    margin-bottom: 60px;
-  }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+  .hero { padding: 80px 0 60px; text-align: center; }
+  .hero-eyebrow { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(48px, 8vw, 96px); font-weight: 800; line-height: 0.95; letter-spacing: -3px; margin-bottom: 24px; }
+  .hero h1 .outline { -webkit-text-stroke: 2px var(--accent); color: transparent; }
+  .hero p { font-size: 17px; color: var(--muted); max-width: 480px; margin: 0 auto 40px; line-height: 1.6; }
+  .contract-badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; margin-bottom: 60px; }
   .contract-badge .dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
   .contract-badge .addr { color: var(--accent); }
-
-  /* Main mint section */
-  .mint-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    margin-bottom: 80px;
-    align-items: start;
-  }
-  @media (max-width: 768px) {
-    .mint-layout { grid-template-columns: 1fr; }
-  }
-
-  /* Canvas preview */
-  .preview-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-    position: relative;
-  }
-  .preview-card canvas {
-    width: 100%;
-    display: block;
-  }
-  .preview-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(8,10,15,0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
+  .mint-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 80px; align-items: start; }
+  @media (max-width: 768px) { .mint-layout { grid-template-columns: 1fr; } }
+  .preview-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; position: relative; }
+  .preview-card canvas { width: 100%; display: block; }
+  .preview-overlay { position: absolute; inset: 0; background: rgba(8,10,15,0.85); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; opacity: 0; transition: opacity 0.3s; }
   .preview-overlay.active { opacity: 1; }
-  .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid rgba(247,147,26,0.2);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
+  .spinner { width: 36px; height: 36px; border: 3px solid rgba(247,147,26,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .preview-overlay span {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: var(--accent);
-  }
-
-  /* Traits */
-  .traits {
-    padding: 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    border-top: 1px solid var(--border);
-  }
-  .trait {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 10px;
-    text-align: center;
-  }
+  .preview-overlay span { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); }
+  .traits { padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; border-top: 1px solid var(--border); }
+  .trait { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
   .trait-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-family: 'Space Mono', monospace; }
   .trait-value { font-size: 12px; font-weight: 600; color: var(--text); }
-
-  /* Mint panel */
-  .mint-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .panel-title {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -1px;
-    line-height: 1.1;
-  }
+  .mint-panel { display: flex; flex-direction: column; gap: 20px; }
+  .panel-title { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
   .panel-title span { color: var(--accent); }
-
-  .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .stat-box {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-  }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .stat-label { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
   .stat-value { font-size: 24px; font-weight: 800; color: var(--text); }
   .stat-value.orange { color: var(--accent); }
-
-  /* Progress bar */
-  .progress-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-  }
-  .progress-label {
-    display: flex;
-    justify-content: space-between;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-  .progress-bar {
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 3px;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 0%;
-  }
-
-  /* Mint button */
-  #mintBtn {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    padding: 18px 32px;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-    letter-spacing: 0.5px;
-  }
-  #mintBtn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0);
-    transition: background 0.2s;
-  }
+  .progress-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .progress-label { display: flex; justify-content: space-between; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+  #mintBtn { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; padding: 18px 32px; background: var(--accent); color: #000; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; letter-spacing: 0.5px; }
+  #mintBtn::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: background 0.2s; }
   #mintBtn:hover::after { background: rgba(255,255,255,0.1); }
   #mintBtn:active { transform: scale(0.98); }
-  #mintBtn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  /* Status messages */
-  #statusMsg {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    padding: 12px 16px;
-    border-radius: 8px;
-    display: none;
-    line-height: 1.5;
-  }
+  #mintBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  #statusMsg { font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 16px; border-radius: 8px; display: none; line-height: 1.5; word-break: break-all; }
   #statusMsg.info { background: rgba(67,97,238,0.1); border: 1px solid rgba(67,97,238,0.3); color: #7b8cde; }
   #statusMsg.success { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.3); color: var(--green); }
   #statusMsg.error { background: rgba(230,57,70,0.08); border: 1px solid rgba(230,57,70,0.3); color: #ff6b6b; }
   #statusMsg.show { display: block; }
-
-  /* Gallery */
-  .section-title {
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -1px;
-    margin-bottom: 8px;
-  }
-  .section-sub {
-    font-size: 14px;
-    color: var(--muted);
-    margin-bottom: 32px;
-  }
-
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 80px;
-  }
-  .nft-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
-  }
+  .section-title { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .section-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 80px; }
+  .nft-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
   .nft-card:hover { border-color: var(--accent); transform: translateY(-4px); }
   .nft-card canvas { width: 100%; display: block; }
   .nft-card-info { padding: 12px; }
   .nft-card-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
   .nft-card-id { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); }
-  .rarity-badge {
-    display: inline-block;
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    padding: 2px 7px;
-    border-radius: 4px;
-    margin-top: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
+  .rarity-badge { display: inline-block; font-family: 'Space Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 4px; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
   .rarity-Common { background: rgba(90,100,120,0.3); color: #9aa0b0; border: 1px solid rgba(90,100,120,0.4); }
   .rarity-Rare { background: rgba(67,97,238,0.2); color: #7b9eff; border: 1px solid rgba(67,97,238,0.4); }
   .rarity-Epic { background: rgba(147,51,234,0.2); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   .rarity-Legendary { background: rgba(247,147,26,0.15); color: var(--accent); border: 1px solid rgba(247,147,26,0.4); }
-
-  .empty-gallery {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--muted);
-    grid-column: 1/-1;
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-  }
-
-  /* Toast */
-  #toast {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    background: var(--surface);
-    border: 1px solid var(--green);
-    color: var(--green);
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    padding: 14px 20px;
-    border-radius: 10px;
-    z-index: 9999;
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 320px;
-  }
+  .empty-gallery { text-align: center; padding: 60px 20px; color: var(--muted); grid-column: 1/-1; font-family: 'Space Mono', monospace; font-size: 13px; }
+  #toast { position: fixed; bottom: 32px; right: 32px; background: var(--surface); border: 1px solid var(--green); color: var(--green); font-family: 'Space Mono', monospace; font-size: 12px; padding: 14px 20px; border-radius: 10px; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); max-width: 320px; }
   #toast.show { transform: translateY(0); opacity: 1; }
-
-  /* Confetti canvas */
-  #confettiCanvas {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9998;
-  }
-
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 40px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px;
-    width: fit-content;
-  }
-  .tab {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    padding: 8px 20px;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--muted);
-    border: none;
-    background: transparent;
-  }
+  #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; }
+  .tab { font-family: 'Space Mono', monospace; font-size: 12px; padding: 8px 20px; border-radius: 7px; cursor: pointer; transition: all 0.2s; color: var(--muted); border: none; background: transparent; }
   .tab.active { background: var(--accent); color: #000; font-weight: 700; }
-
   .tab-content { display: none; }
   .tab-content.active { display: block; }
-
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 32px 0;
-    text-align: center;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-  }
+  footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
   footer a { color: var(--accent); text-decoration: none; }
 </style>
 </head>
@@ -472,7 +112,6 @@
 
 <canvas id="confettiCanvas"></canvas>
 <div id="toast"></div>
-
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 <div class="orb orb3"></div>
@@ -494,19 +133,16 @@
 
 <main>
   <div class="container">
-
-    <!-- Hero -->
     <div class="hero">
-      <div class="hero-eyebrow">OP_NET Vibecoding Challenge 2024</div>
+      <div class="hero-eyebrow">OP_NET Vibecoding Challenge 2026</div>
       <h1>Generative NFTs<br><span class="outline">on Bitcoin</span></h1>
       <p>Mint unique algorithmically-generated art as OP_NET NFTs — living on Bitcoin Layer 1 forever.</p>
       <div class="contract-badge">
         <div class="dot"></div>
-        Contract: <span class="addr" id="contractAddrDisplay">opr1sqzhvl6s22jfxkrngdtrm7n33qjesyn3qdvhgtwpd</span>
+        Contract: <span class="addr">opr1sqzhvl6s22jfxkrngdtrm7n33qjesyn3qdvhgtwpd</span>
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button class="tab active" onclick="switchTab('mint')">Mint</button>
       <button class="tab" onclick="switchTab('gallery')">Gallery</button>
@@ -516,62 +152,30 @@
     <!-- MINT TAB -->
     <div class="tab-content active" id="tab-mint">
       <div class="mint-layout">
-        <!-- Preview -->
         <div class="preview-card">
           <canvas id="previewCanvas" width="400" height="400"></canvas>
           <div class="preview-overlay" id="mintingOverlay">
             <div class="spinner"></div>
             <span id="overlayMsg">Waiting for wallet...</span>
           </div>
-          <div class="traits" id="traitDisplay">
-            <div class="trait">
-              <div class="trait-label">Style</div>
-              <div class="trait-value" id="traitStyle">—</div>
-            </div>
-            <div class="trait">
-              <div class="trait-label">Palette</div>
-              <div class="trait-value" id="traitPalette">—</div>
-            </div>
-            <div class="trait">
-              <div class="trait-label">Rarity</div>
-              <div class="trait-value" id="traitRarity">—</div>
-            </div>
+          <div class="traits">
+            <div class="trait"><div class="trait-label">Style</div><div class="trait-value" id="traitStyle">—</div></div>
+            <div class="trait"><div class="trait-label">Palette</div><div class="trait-value" id="traitPalette">—</div></div>
+            <div class="trait"><div class="trait-label">Rarity</div><div class="trait-value" id="traitRarity">—</div></div>
           </div>
         </div>
-
-        <!-- Panel -->
         <div class="mint-panel">
           <div class="panel-title">Mint Your<br><span>BitMint NFT</span></div>
-
           <div class="stats-row">
-            <div class="stat-box">
-              <div class="stat-label">Minted</div>
-              <div class="stat-value orange" id="statMinted">—</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-label">Max Supply</div>
-              <div class="stat-value" id="statMax">1,000</div>
-            </div>
+            <div class="stat-box"><div class="stat-label">Minted</div><div class="stat-value orange" id="statMinted">0</div></div>
+            <div class="stat-box"><div class="stat-label">Max Supply</div><div class="stat-value">1,000</div></div>
           </div>
-
           <div class="progress-wrap">
-            <div class="progress-label">
-              <span>Mint Progress</span>
-              <span id="progressPct">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="progressFill"></div>
-            </div>
+            <div class="progress-label"><span>Mint Progress</span><span id="progressPct">0%</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
           </div>
-
           <div id="statusMsg"></div>
-
-          <button onclick="debugWallet()" style="font-family:monospace;font-size:11px;padding:10px;background:transparent;border:1px solid #5a6478;color:#5a6478;border-radius:8px;cursor:pointer;">Debug: Show Wallet Methods</button>
-
-          <button id="mintBtn" onclick="mintNFT()">
-            ⚡ Mint NFT — Free
-          </button>
-
+          <button id="mintBtn" onclick="mintNFT()">⚡ Mint NFT — Free</button>
           <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.6">
             Each NFT is unique. Traits are generated from your wallet address + token ID on-chain. No two are alike.
           </div>
@@ -583,53 +187,40 @@
     <div class="tab-content" id="tab-gallery">
       <div class="section-title">All Minted NFTs</div>
       <div class="section-sub">The full collection — every NFT minted on-chain</div>
-      <div class="gallery-grid" id="galleryGrid">
-        <div class="empty-gallery">No NFTs minted yet. Be the first!</div>
-      </div>
+      <div class="gallery-grid" id="galleryGrid"><div class="empty-gallery">No NFTs minted yet. Be the first!</div></div>
     </div>
 
     <!-- COLLECTION TAB -->
     <div class="tab-content" id="tab-collection">
       <div class="section-title">My Collection</div>
       <div class="section-sub">NFTs owned by your connected wallet</div>
-      <div class="gallery-grid" id="collectionGrid">
-        <div class="empty-gallery">Connect your wallet to see your NFTs</div>
-      </div>
+      <div class="gallery-grid" id="collectionGrid"><div class="empty-gallery">Connect your wallet to see your NFTs</div></div>
     </div>
-
   </div>
 </main>
 
 <footer>
   <div class="container">
-    Built for OP_NET Vibecoding Challenge · Contract: <a href="#" id="footerAddr">opr1sqzhvl6s22jfxkrngdtrm7n33qjesyn3qdvhgtwpd</a>
+    Built for <a href="https://vibecode.finance/challenge" target="_blank">#opnetvibecode</a> ·
+    <a href="https://opnet.org" target="_blank">OP_NET</a> · Bitcoin L1 ·
+    <a href="https://github.com/pathiosgr13/bitmint-market" target="_blank">GitHub</a>
   </div>
 </footer>
 
 <script>
-// =====================
-// CONFIG
-// =====================
 const CONTRACT_ADDRESS = 'opr1sqzhvl6s22jfxkrngdtrm7n33qjesyn3qdvhgtwpd';
 const MAX_SUPPLY = 1000;
-
-// =====================
-// STATE
-// =====================
 let walletAddress = null;
 let mintedNFTs = JSON.parse(localStorage.getItem('bitmint_nfts') || '[]');
 let totalMinted = mintedNFTs.length;
 
-// =====================
-// GENERATIVE ART
-// =====================
-const STYLES = ['Circuit', 'Geometric', 'Waves', 'Radial', 'Glitch'];
+const STYLES = ['Circuit','Geometric','Waves','Radial','Glitch'];
 const PALETTES = {
-  Bitcoin:  ['#f7931a','#ffb347','#ff6b00','#1a0a00'],
-  Cyber:    ['#00ff88','#00bfff','#7b00ff','#001a0a'],
-  Inferno:  ['#e63946','#ff006e','#fb5607','#ffbe0b'],
-  Arctic:   ['#4361ee','#4cc9f0','#7209b7','#0a0020'],
-  Void:     ['#ffffff','#aaaaaa','#555555','#111111'],
+  Bitcoin: ['#f7931a','#ffb347','#ff6b00','#1a0a00'],
+  Cyber:   ['#00ff88','#00bfff','#7b00ff','#001a0a'],
+  Inferno: ['#e63946','#ff006e','#fb5607','#ffbe0b'],
+  Arctic:  ['#4361ee','#4cc9f0','#7209b7','#0a0020'],
+  Void:    ['#ffffff','#aaaaaa','#555555','#111111'],
 };
 const PALETTE_NAMES = Object.keys(PALETTES);
 const RARITIES = ['Common','Common','Common','Rare','Rare','Epic','Legendary'];
@@ -640,405 +231,191 @@ function hashSeed(str) {
   return Math.abs(h);
 }
 
-function drawNFT(canvas, seed, size = 400) {
+function drawNFT(canvas, seed, size=400) {
   canvas.width = size; canvas.height = size;
   const ctx = canvas.getContext('2d');
-  const rng = (() => { let s = hashSeed(String(seed)); return () => { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return (s >>> 0) / 0xFFFFFFFF; }; })();
-
-  const styleIdx = Math.floor(rng() * STYLES.length);
-  const paletteName = PALETTE_NAMES[Math.floor(rng() * PALETTE_NAMES.length)];
+  const rng = (() => { let s = hashSeed(String(seed)); return () => { s ^= s<<13; s ^= s>>17; s ^= s<<5; return (s>>>0)/0xFFFFFFFF; }; })();
+  const styleIdx = Math.floor(rng()*STYLES.length);
+  const paletteName = PALETTE_NAMES[Math.floor(rng()*PALETTE_NAMES.length)];
   const palette = PALETTES[paletteName];
-  const rarityIdx = Math.floor(rng() * RARITIES.length);
-  const rarity = RARITIES[rarityIdx];
-
-  // Background
-  const grad = ctx.createLinearGradient(0, 0, size, size);
-  grad.addColorStop(0, palette[3]);
-  grad.addColorStop(1, '#080a0f');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-
+  const rarity = RARITIES[Math.floor(rng()*RARITIES.length)];
+  const grad = ctx.createLinearGradient(0,0,size,size);
+  grad.addColorStop(0, palette[3]); grad.addColorStop(1,'#080a0f');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,size,size);
   const style = STYLES[styleIdx];
-
-  if (style === 'Circuit') {
-    ctx.strokeStyle = palette[0];
-    ctx.lineWidth = 1.5;
-    for (let i = 0; i < 30; i++) {
-      ctx.globalAlpha = 0.3 + rng() * 0.5;
-      const x = Math.floor(rng() * 10) * (size / 10);
-      const y = Math.floor(rng() * 10) * (size / 10);
-      const w = (1 + Math.floor(rng() * 4)) * (size / 10);
-      const h = (1 + Math.floor(rng() * 4)) * (size / 10);
-      ctx.beginPath();
-      ctx.rect(x, y, w, h);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    for (let i = 0; i < 20; i++) {
-      ctx.fillStyle = palette[Math.floor(rng() * 3)];
-      ctx.globalAlpha = 0.8;
-      const x = rng() * size, y = rng() * size;
-      ctx.beginPath();
-      ctx.arc(x, y, 3 + rng() * 5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else if (style === 'Geometric') {
-    for (let i = 0; i < 15; i++) {
-      ctx.globalAlpha = 0.2 + rng() * 0.6;
-      ctx.fillStyle = palette[Math.floor(rng() * palette.length)];
-      const x = rng() * size, y = rng() * size;
-      const r = 20 + rng() * 80;
-      ctx.beginPath();
-      const sides = 3 + Math.floor(rng() * 5);
-      ctx.moveTo(x + r * Math.cos(0), y + r * Math.sin(0));
-      for (let j = 1; j <= sides; j++) {
-        ctx.lineTo(x + r * Math.cos(j * 2 * Math.PI / sides), y + r * Math.sin(j * 2 * Math.PI / sides));
-      }
-      ctx.closePath();
-      ctx.fill();
-    }
-  } else if (style === 'Waves') {
-    for (let i = 0; i < 12; i++) {
-      ctx.beginPath();
-      ctx.globalAlpha = 0.4 + rng() * 0.4;
-      ctx.strokeStyle = palette[i % palette.length];
-      ctx.lineWidth = 2 + rng() * 4;
-      const amp = 20 + rng() * 60;
-      const freq = 0.005 + rng() * 0.02;
-      const yBase = rng() * size;
-      ctx.moveTo(0, yBase);
-      for (let x = 0; x < size; x += 4) {
-        ctx.lineTo(x, yBase + amp * Math.sin(x * freq + i));
-      }
-      ctx.stroke();
-    }
-  } else if (style === 'Radial') {
-    const cx = size / 2, cy = size / 2;
-    for (let i = 0; i < 20; i++) {
-      ctx.globalAlpha = 0.15 + rng() * 0.4;
-      const grd = ctx.createRadialGradient(cx, cy, i * 10, cx, cy, i * 20 + 30);
-      grd.addColorStop(0, palette[i % palette.length]);
-      grd.addColorStop(1, 'transparent');
-      ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.arc(cx, cy, i * 20 + 30, 0, Math.PI * 2);
-      ctx.fill();
-    }
+  if (style==='Circuit') {
+    ctx.strokeStyle=palette[0]; ctx.lineWidth=1.5;
+    for(let i=0;i<30;i++){ctx.globalAlpha=0.3+rng()*0.5;const x=Math.floor(rng()*10)*(size/10),y=Math.floor(rng()*10)*(size/10),w=(1+Math.floor(rng()*4))*(size/10),h=(1+Math.floor(rng()*4))*(size/10);ctx.beginPath();ctx.rect(x,y,w,h);ctx.stroke();}
+    ctx.globalAlpha=1;
+    for(let i=0;i<20;i++){ctx.fillStyle=palette[Math.floor(rng()*3)];ctx.globalAlpha=0.8;const x=rng()*size,y=rng()*size;ctx.beginPath();ctx.arc(x,y,3+rng()*5,0,Math.PI*2);ctx.fill();}
+  } else if (style==='Geometric') {
+    for(let i=0;i<15;i++){ctx.globalAlpha=0.2+rng()*0.6;ctx.fillStyle=palette[Math.floor(rng()*palette.length)];const x=rng()*size,y=rng()*size,r=20+rng()*80,sides=3+Math.floor(rng()*5);ctx.beginPath();ctx.moveTo(x+r*Math.cos(0),y+r*Math.sin(0));for(let j=1;j<=sides;j++)ctx.lineTo(x+r*Math.cos(j*2*Math.PI/sides),y+r*Math.sin(j*2*Math.PI/sides));ctx.closePath();ctx.fill();}
+  } else if (style==='Waves') {
+    for(let i=0;i<12;i++){ctx.beginPath();ctx.globalAlpha=0.4+rng()*0.4;ctx.strokeStyle=palette[i%palette.length];ctx.lineWidth=2+rng()*4;const amp=20+rng()*60,freq=0.005+rng()*0.02,yBase=rng()*size;ctx.moveTo(0,yBase);for(let x=0;x<size;x+=4)ctx.lineTo(x,yBase+amp*Math.sin(x*freq+i));ctx.stroke();}
+  } else if (style==='Radial') {
+    const cx=size/2,cy=size/2;
+    for(let i=0;i<20;i++){ctx.globalAlpha=0.15+rng()*0.4;const grd=ctx.createRadialGradient(cx,cy,i*10,cx,cy,i*20+30);grd.addColorStop(0,palette[i%palette.length]);grd.addColorStop(1,'transparent');ctx.fillStyle=grd;ctx.beginPath();ctx.arc(cx,cy,i*20+30,0,Math.PI*2);ctx.fill();}
   } else {
-    // Glitch
-    for (let i = 0; i < size; i += 8 + Math.floor(rng() * 16)) {
-      ctx.globalAlpha = 0.3 + rng() * 0.5;
-      ctx.fillStyle = palette[Math.floor(rng() * palette.length)];
-      const w = 10 + rng() * 200;
-      ctx.fillRect(rng() * size - w/2, i, w, 4 + rng() * 10);
-    }
-    ctx.globalAlpha = 0.4;
-    ctx.fillStyle = palette[0];
-    ctx.fillRect(size*0.2, size*0.2, size*0.6, size*0.6);
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = palette[1];
-    ctx.lineWidth = 2;
-    ctx.strokeRect(size*0.2, size*0.2, size*0.6, size*0.6);
+    for(let i=0;i<size;i+=8+Math.floor(rng()*16)){ctx.globalAlpha=0.3+rng()*0.5;ctx.fillStyle=palette[Math.floor(rng()*palette.length)];const w=10+rng()*200;ctx.fillRect(rng()*size-w/2,i,w,4+rng()*10);}
+    ctx.globalAlpha=0.4;ctx.fillStyle=palette[0];ctx.fillRect(size*0.2,size*0.2,size*0.6,size*0.6);
+    ctx.globalAlpha=1;ctx.strokeStyle=palette[1];ctx.lineWidth=2;ctx.strokeRect(size*0.2,size*0.2,size*0.6,size*0.6);
   }
-
-  ctx.globalAlpha = 1;
-
-  // Token ID watermark
-  ctx.fillStyle = 'rgba(255,255,255,0.08)';
-  ctx.font = `bold ${size * 0.18}px monospace`;
-  ctx.textAlign = 'center';
-  ctx.fillText(`#${seed}`, size/2, size/2 + size * 0.07);
-
+  ctx.globalAlpha=1;ctx.fillStyle='rgba(255,255,255,0.08)';ctx.font=`bold ${size*0.18}px monospace`;ctx.textAlign='center';ctx.fillText(`#${seed}`,size/2,size/2+size*0.07);
   return { style: STYLES[styleIdx], palette: paletteName, rarity };
 }
 
-// =====================
-// WALLET
-// =====================
+// ── WALLET (FIXED) ──────────────────────────────────────────
 async function connectWallet() {
   const btn = document.getElementById('walletBtn');
   const label = document.getElementById('walletLabel');
 
-  // Check for OP_WALLET
-  if (typeof window.opnet !== 'undefined' || typeof window.unisat !== 'undefined') {
-    try {
-      const provider = window.opnet || window.unisat;
-      const accounts = await provider.requestAccounts();
-      walletAddress = accounts[0];
-      btn.classList.add('connected');
-      label.textContent = walletAddress.slice(0, 8) + '...' + walletAddress.slice(-6);
-      showStatus('Wallet connected: ' + walletAddress, 'success');
-      loadContractStats();
-    } catch(e) {
-      showStatus('Connection rejected: ' + e.message, 'error');
-    }
-  } else {
-    // Simulate for demo/testing purposes
-    walletAddress = 'bcrt1demo' + Math.random().toString(36).slice(2, 10);
-    btn.classList.add('connected');
-    label.textContent = walletAddress.slice(0, 8) + '...' + walletAddress.slice(-6);
-    showStatus('⚠ OP_WALLET not found — using demo mode. Install OP_WALLET extension for real minting.', 'info');
-    loadContractStats();
-  }
-}
-
-// =====================
-// CONTRACT INTERACTION
-// =====================
-async function loadContractStats() {
-  updateUI();
-}
-
-async function mintNFT() {
-  if (!walletAddress) {
-    showStatus('Please connect your wallet first!', 'error');
+  if (typeof window.opnet === 'undefined') {
+    showStatus('❌ OP_WALLET not found! Please install the OP_WALLET Chrome extension to connect.', 'error');
     return;
   }
 
+  try {
+    label.textContent = 'Connecting...';
+    btn.disabled = true;
+
+    // Disconnect first so the approval popup always appears
+    try { await window.opnet.disconnect(); } catch(e) { /* ignore */ }
+
+    // Triggers the OP_WALLET approval popup
+    const accounts = await window.opnet.requestAccounts();
+
+    if (!accounts || accounts.length === 0) throw new Error('No accounts returned');
+
+    walletAddress = accounts[0];
+    btn.classList.add('connected');
+    btn.disabled = false;
+    label.textContent = walletAddress.slice(0,8) + '...' + walletAddress.slice(-6);
+    showStatus('✅ Wallet connected: ' + walletAddress, 'success');
+    loadContractStats();
+
+  } catch(e) {
+    btn.disabled = false;
+    label.textContent = 'Connect Wallet';
+    if (e.code === 4001) {
+      showStatus('⚠️ Connection rejected. Please approve in OP_WALLET and try again.', 'error');
+    } else {
+      showStatus('❌ Error: ' + (e.message || String(e)), 'error');
+    }
+  }
+}
+
+function loadContractStats() { updateUI(); }
+
+// ── MINT ────────────────────────────────────────────────────
+async function mintNFT() {
+  if (!walletAddress) { showStatus('Please connect your wallet first!', 'error'); return; }
   const btn = document.getElementById('mintBtn');
   const overlay = document.getElementById('mintingOverlay');
   const overlayMsg = document.getElementById('overlayMsg');
-
-  btn.disabled = true;
-  overlay.classList.add('active');
-  overlayMsg.textContent = 'Waiting for wallet...';
-  showStatus('Opening OP_WALLET to sign mint transaction...', 'info');
-
+  btn.disabled = true; overlay.classList.add('active');
+  overlayMsg.textContent = 'Opening OP_WALLET...';
+  showStatus('Opening OP_WALLET — please sign the mint transaction...', 'info');
   try {
     let txId = null;
-
     if (typeof window.opnet !== 'undefined') {
       overlayMsg.textContent = 'Sign in OP_WALLET...';
-
-      // Use signAndBroadcastInteraction — the correct OP_WALLET contract call method
-      overlayMsg.textContent = 'Sign in OP_WALLET...';
-      showStatus('Opening OP_WALLET — please sign the mint transaction...', 'info');
-
       const result = await window.opnet.signAndBroadcastInteraction({
         to: CONTRACT_ADDRESS,
         calldata: encodeSelector('mint()'),
       });
-
       txId = (result && (result.txid || result.txId || result.hash || result.id || result.result)) || String(result);
-
-    } else if (typeof window.unisat !== 'undefined') {
-      overlayMsg.textContent = 'Sign in UniSat...';
-      const mintSelector = encodeSelector('mint()');
-      const result = await window.unisat.sendInscription(CONTRACT_ADDRESS, mintSelector);
-      txId = result;
-
     } else {
-      // Demo mode — simulate
       overlayMsg.textContent = 'Simulating mint...';
       await sleep(1800);
-      txId = 'demo_' + Math.random().toString(16).slice(2, 18);
+      txId = 'demo_' + Math.random().toString(16).slice(2,18);
     }
-
-    // Success!
     const tokenId = totalMinted + 1;
     overlayMsg.textContent = 'Generating art...';
     await sleep(300);
-
     const preview = document.getElementById('previewCanvas');
     const traits = drawNFT(preview, tokenId);
-
     document.getElementById('traitStyle').textContent = traits.style;
     document.getElementById('traitPalette').textContent = traits.palette;
     document.getElementById('traitRarity').textContent = traits.rarity;
-
-    // Save NFT
     const nft = { id: tokenId, owner: walletAddress, traits, txId, ts: Date.now() };
     mintedNFTs.push(nft);
     localStorage.setItem('bitmint_nfts', JSON.stringify(mintedNFTs));
     totalMinted++;
-
-    updateUI();
-    overlay.classList.remove('active');
-    btn.disabled = false;
-
-    showStatus(`✅ Minted #${tokenId}! TX: ${txId.slice(0,20)}...`, 'success');
-    showToast(`🎉 Minted BitMint #${tokenId}!`);
+    updateUI(); overlay.classList.remove('active'); btn.disabled = false;
+    showStatus(`✅ Minted #${tokenId}! TX: ${String(txId).slice(0,20)}...`, 'success');
+    showToast(`🎉 Minted BitMint #${tokenId} — ${traits.rarity}!`);
     fireConfetti();
-
   } catch(e) {
-    overlay.classList.remove('active');
-    btn.disabled = false;
-    showStatus('Mint failed: ' + (e.message || String(e)), 'error');
+    overlay.classList.remove('active'); btn.disabled = false;
+    showStatus('❌ Mint failed: ' + (e.message || String(e)), 'error');
   }
 }
 
-// ABI selector encoder (keccak-like approximation for OP_NET)
 function encodeSelector(sig) {
-  // Simple FNV-1a hash for selector encoding
   let hash = 0x811c9dc5;
-  for (let i = 0; i < sig.length; i++) {
-    hash ^= sig.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, '0');
+  for (let i=0;i<sig.length;i++){hash^=sig.charCodeAt(i);hash=(hash*0x01000193)>>>0;}
+  return hash.toString(16).padStart(8,'0');
 }
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
-function debugWallet() {
-  if (typeof window.opnet === 'undefined') {
-    showStatus('window.opnet not found!', 'error');
-    return;
-  }
-  const allMethods = [];
-  let obj = window.opnet;
-  while (obj && obj !== Object.prototype) {
-    Object.getOwnPropertyNames(obj).forEach(k => { if (!allMethods.includes(k)) allMethods.push(k); });
-    obj = Object.getPrototypeOf(obj);
-  }
-  showStatus('METHODS: ' + allMethods.join(' | '), 'info');
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// =====================
-// UI UPDATES
-// =====================
+// ── UI ──────────────────────────────────────────────────────
 function updateUI() {
   document.getElementById('statMinted').textContent = totalMinted.toLocaleString();
-  document.getElementById('statMax').textContent = MAX_SUPPLY.toLocaleString();
-  const pct = (totalMinted / MAX_SUPPLY * 100).toFixed(1);
-  document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('progressFill').style.width = pct + '%';
-
-  renderGallery();
-  renderCollection();
+  const pct = (totalMinted/MAX_SUPPLY*100).toFixed(1);
+  document.getElementById('progressPct').textContent = pct+'%';
+  document.getElementById('progressFill').style.width = pct+'%';
+  renderGallery(); renderCollection();
 }
 
 function renderGallery() {
   const grid = document.getElementById('galleryGrid');
-  if (mintedNFTs.length === 0) {
-    grid.innerHTML = '<div class="empty-gallery">No NFTs minted yet. Be the first!</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  mintedNFTs.forEach(nft => {
-    const card = document.createElement('div');
-    card.className = 'nft-card';
-    card.innerHTML = `
-      <canvas id="gcard_${nft.id}" width="200" height="200"></canvas>
-      <div class="nft-card-info">
-        <div class="nft-card-name">BitMint #${nft.id}</div>
-        <div class="nft-card-id">${nft.traits.style} · ${nft.traits.palette}</div>
-        <span class="rarity-badge rarity-${nft.traits.rarity}">${nft.traits.rarity}</span>
-      </div>
-    `;
+  if (mintedNFTs.length===0){grid.innerHTML='<div class="empty-gallery">No NFTs minted yet. Be the first!</div>';return;}
+  grid.innerHTML='';
+  mintedNFTs.slice().reverse().forEach(nft=>{
+    const card=document.createElement('div');card.className='nft-card';
+    card.innerHTML=`<canvas id="gcard_${nft.id}" width="200" height="200"></canvas><div class="nft-card-info"><div class="nft-card-name">BitMint #${nft.id}</div><div class="nft-card-id">${nft.traits.style} · ${nft.traits.palette}</div><span class="rarity-badge rarity-${nft.traits.rarity}">${nft.traits.rarity}</span></div>`;
     grid.appendChild(card);
-    requestAnimationFrame(() => drawNFT(document.getElementById('gcard_' + nft.id), nft.id, 200));
+    requestAnimationFrame(()=>drawNFT(document.getElementById('gcard_'+nft.id),nft.id,200));
   });
 }
 
 function renderCollection() {
   const grid = document.getElementById('collectionGrid');
-  if (!walletAddress) {
-    grid.innerHTML = '<div class="empty-gallery">Connect your wallet to see your NFTs</div>';
-    return;
-  }
-  const mine = mintedNFTs.filter(n => n.owner === walletAddress);
-  if (mine.length === 0) {
-    grid.innerHTML = '<div class="empty-gallery">You haven\'t minted any NFTs yet!</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  mine.forEach(nft => {
-    const card = document.createElement('div');
-    card.className = 'nft-card';
-    card.innerHTML = `
-      <canvas id="ccard_${nft.id}" width="200" height="200"></canvas>
-      <div class="nft-card-info">
-        <div class="nft-card-name">BitMint #${nft.id}</div>
-        <div class="nft-card-id">${nft.traits.style} · ${nft.traits.palette}</div>
-        <span class="rarity-badge rarity-${nft.traits.rarity}">${nft.traits.rarity}</span>
-      </div>
-    `;
+  if (!walletAddress){grid.innerHTML='<div class="empty-gallery">Connect your wallet to see your NFTs</div>';return;}
+  const mine = mintedNFTs.filter(n=>n.owner===walletAddress);
+  if (mine.length===0){grid.innerHTML='<div class="empty-gallery">You haven\'t minted any NFTs yet!</div>';return;}
+  grid.innerHTML='';
+  mine.slice().reverse().forEach(nft=>{
+    const card=document.createElement('div');card.className='nft-card';
+    card.innerHTML=`<canvas id="ccard_${nft.id}" width="200" height="200"></canvas><div class="nft-card-info"><div class="nft-card-name">BitMint #${nft.id}</div><div class="nft-card-id">${nft.traits.style} · ${nft.traits.palette}</div><span class="rarity-badge rarity-${nft.traits.rarity}">${nft.traits.rarity}</span></div>`;
     grid.appendChild(card);
-    requestAnimationFrame(() => drawNFT(document.getElementById('ccard_' + nft.id), nft.id, 200));
+    requestAnimationFrame(()=>drawNFT(document.getElementById('ccard_'+nft.id),nft.id,200));
   });
 }
 
-// =====================
-// STATUS / TOAST
-// =====================
-function showStatus(msg, type) {
-  const el = document.getElementById('statusMsg');
-  el.textContent = msg;
-  el.className = `${type} show`;
-}
-
+function showStatus(msg,type){const el=document.getElementById('statusMsg');el.textContent=msg;el.className=`${type} show`;}
 let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),4000);}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{const tabs=['mint','gallery','collection'];t.classList.toggle('active',tabs[i]===name);});
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='gallery')renderGallery();
+  if(name==='collection')renderCollection();
 }
 
-// =====================
-// TABS
-// =====================
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    const tabs = ['mint','gallery','collection'];
-    t.classList.toggle('active', tabs[i] === name);
-  });
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  if (name === 'gallery') renderGallery();
-  if (name === 'collection') renderCollection();
-}
-
-// =====================
-// CONFETTI
-// =====================
-function fireConfetti() {
-  const canvas = document.getElementById('confettiCanvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const pieces = [];
-  const colors = ['#f7931a','#ffb347','#e63946','#4361ee','#00ff88','#ff006e'];
-  for (let i = 0; i < 100; i++) {
-    pieces.push({
-      x: Math.random() * canvas.width,
-      y: -10,
-      r: 4 + Math.random() * 6,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      vx: (Math.random() - 0.5) * 6,
-      vy: 3 + Math.random() * 5,
-      alpha: 1,
-    });
-  }
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let alive = false;
-    pieces.forEach(p => {
-      p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.alpha -= 0.012;
-      if (p.alpha > 0) {
-        alive = true;
-        ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    });
-    ctx.globalAlpha = 1;
-    if (alive) requestAnimationFrame(animate);
-    else ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+function fireConfetti(){
+  const canvas=document.getElementById('confettiCanvas');const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const pieces=[];const colors=['#f7931a','#ffb347','#e63946','#4361ee','#00ff88','#ff006e'];
+  for(let i=0;i<100;i++)pieces.push({x:Math.random()*canvas.width,y:-10,r:4+Math.random()*6,color:colors[Math.floor(Math.random()*colors.length)],vx:(Math.random()-0.5)*6,vy:3+Math.random()*5,alpha:1});
+  function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);let alive=false;pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.alpha-=0.012;if(p.alpha>0){alive=true;ctx.globalAlpha=p.alpha;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}});ctx.globalAlpha=1;if(alive)requestAnimationFrame(animate);else ctx.clearRect(0,0,canvas.width,canvas.height);}
   animate();
 }
 
-// =====================
-// INIT
-// =====================
-window.addEventListener('load', () => {
-  // Draw initial preview
-  drawNFT(document.getElementById('previewCanvas'), Math.floor(Math.random() * 9999) + 1);
+window.addEventListener('load',()=>{
+  drawNFT(document.getElementById('previewCanvas'),Math.floor(Math.random()*9999)+1);
   updateUI();
 });
 </script>
