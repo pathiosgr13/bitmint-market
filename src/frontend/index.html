@@ -309,17 +309,42 @@
       document.getElementById('remaining').textContent = 1000 - totalMinted;
     }
 
-    function connectWallet() {
+    async function connectWallet() {
       const btn = document.getElementById('connectBtn');
-      btn.textContent = 'Connecting...';
-      btn.disabled = true;
 
-      setTimeout(() => {
-        walletConnected = true;
-        walletAddress = 'bc1p...testnet';
-        document.getElementById('walletArea').innerHTML =
-          `<div class="wallet-address">✅ ${walletAddress}</div>`;
-      }, 1200);
+      try {
+        // Check if OP_WALLET is installed
+        if (!window.opnet) {
+          alert('OP_WALLET not found! Please install it from the Chrome Web Store and refresh.');
+          return;
+        }
+
+        btn.textContent = 'Connecting...';
+        btn.disabled = true;
+
+        // Request wallet connection
+        const accounts = await window.opnet.requestAccounts();
+
+        if (accounts && accounts.length > 0) {
+          walletConnected = true;
+          walletAddress = accounts[0];
+
+          // Show shortened address
+          const short = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
+          document.getElementById('walletArea').innerHTML =
+            `<div class="wallet-address">✅ ${short}</div>`;
+        }
+
+      } catch (err) {
+        btn.textContent = 'Connect Wallet';
+        btn.disabled = false;
+
+        if (err.code === 4001) {
+          document.getElementById('mintStatus').textContent = '⚠️ Connection rejected. Please try again.';
+        } else {
+          document.getElementById('mintStatus').textContent = '❌ Error: ' + err.message;
+        }
+      }
     }
 
     function mintNFT() {
