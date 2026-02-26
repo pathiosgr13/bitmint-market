@@ -810,36 +810,16 @@ async function mintNFT() {
     if (typeof window.opnet !== 'undefined') {
       overlayMsg.textContent = 'Sign in OP_WALLET...';
 
-      // Debug: show all available methods ON SCREEN
-      const allMethods = [];
-      let obj = window.opnet;
-      while (obj && obj !== Object.prototype) {
-        Object.getOwnPropertyNames(obj).forEach(k => { if (!allMethods.includes(k)) allMethods.push(k); });
-        obj = Object.getPrototypeOf(obj);
-      }
-      showStatus('OP_WALLET methods: ' + allMethods.join(', '), 'info');
-      await sleep(8000);
+      // Use signAndBroadcastInteraction — the correct OP_WALLET contract call method
+      overlayMsg.textContent = 'Sign in OP_WALLET...';
+      showStatus('Opening OP_WALLET — please sign the mint transaction...', 'info');
 
-      const p = window.opnet;
-      const selector = encodeSelector('mint()');
-      let result;
+      const result = await window.opnet.signAndBroadcastInteraction({
+        to: CONTRACT_ADDRESS,
+        calldata: encodeSelector('mint()'),
+      });
 
-      if (typeof p.interact === 'function') {
-        result = await p.interact({ contractAddress: CONTRACT_ADDRESS, method: 'mint', args: [] });
-      } else if (typeof p.callContract === 'function') {
-        result = await p.callContract({ to: CONTRACT_ADDRESS, data: selector });
-      } else if (typeof p.signAndBroadcastTransaction === 'function') {
-        result = await p.signAndBroadcastTransaction({ to: CONTRACT_ADDRESS, calldata: selector });
-      } else if (typeof p.sendTransaction === 'function') {
-        result = await p.sendTransaction({ to: CONTRACT_ADDRESS, data: '0x' + selector });
-      } else if (typeof p.signPsbt === 'function') {
-        // OP_WALLET is forked from UniSat — use inscription-style call
-        result = await p.signPsbt(selector);
-      } else {
-        throw new Error('OP_WALLET API not recognized. Open DevTools console and check "[BitMint] window.opnet methods" to see available methods.');
-      }
-
-      txId = (result && (result.txid || result.txId || result.hash || result.id)) || String(result);
+      txId = (result && (result.txid || result.txId || result.hash || result.id || result.result)) || String(result);
 
     } else if (typeof window.unisat !== 'undefined') {
       overlayMsg.textContent = 'Sign in UniSat...';
