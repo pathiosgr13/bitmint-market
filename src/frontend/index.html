@@ -806,22 +806,41 @@ async function mintNFT() {
     let txId = null;
 
     if (typeof window.opnet !== 'undefined') {
-      // Real OP_NET mint via window.opnet
       overlayMsg.textContent = 'Sign in OP_WALLET...';
 
-      const mintSelector = '0x' + encodeSelector('mint()');
-      const calldata = mintSelector; // No args for mint()
+      // Debug: log all available methods to console
+      const allMethods = [];
+      let obj = window.opnet;
+      while (obj && obj !== Object.prototype) {
+        Object.getOwnPropertyNames(obj).forEach(k => { if (!allMethods.includes(k)) allMethods.push(k); });
+        obj = Object.getPrototypeOf(obj);
+      }
+      console.log('[BitMint] window.opnet methods:', allMethods);
+      console.log('[BitMint] window.opnet object:', window.opnet);
 
-      const result = await window.opnet.sendTransaction({
-        to: CONTRACT_ADDRESS,
-        data: calldata,
-        network: 'regtest',
-      });
-      txId = result.txid || result.hash || result;
+      const p = window.opnet;
+      const selector = encodeSelector('mint()');
+      let result;
+
+      if (typeof p.interact === 'function') {
+        result = await p.interact({ contractAddress: CONTRACT_ADDRESS, method: 'mint', args: [] });
+      } else if (typeof p.callContract === 'function') {
+        result = await p.callContract({ to: CONTRACT_ADDRESS, data: selector });
+      } else if (typeof p.signAndBroadcastTransaction === 'function') {
+        result = await p.signAndBroadcastTransaction({ to: CONTRACT_ADDRESS, calldata: selector });
+      } else if (typeof p.sendTransaction === 'function') {
+        result = await p.sendTransaction({ to: CONTRACT_ADDRESS, data: '0x' + selector });
+      } else if (typeof p.signPsbt === 'function') {
+        // OP_WALLET is forked from UniSat — use inscription-style call
+        result = await p.signPsbt(selector);
+      } else {
+        throw new Error('OP_WALLET API not recognized. Open DevTools console and check "[BitMint] window.opnet methods" to see available methods.');
+      }
+
+      txId = (result && (result.txid || result.txId || result.hash || result.id)) || String(result);
 
     } else if (typeof window.unisat !== 'undefined') {
       overlayMsg.textContent = 'Sign in UniSat...';
-      // Fallback for unisat
       const mintSelector = encodeSelector('mint()');
       const result = await window.unisat.sendInscription(CONTRACT_ADDRESS, mintSelector);
       txId = result;
