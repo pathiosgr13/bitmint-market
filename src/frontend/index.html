@@ -566,6 +566,8 @@
 
           <div id="statusMsg"></div>
 
+          <button onclick="debugWallet()" style="font-family:monospace;font-size:11px;padding:10px;background:transparent;border:1px solid #5a6478;color:#5a6478;border-radius:8px;cursor:pointer;">Debug: Show Wallet Methods</button>
+
           <button id="mintBtn" onclick="mintNFT()">
             ⚡ Mint NFT — Free
           </button>
@@ -894,6 +896,20 @@ function encodeSelector(sig) {
     hash = (hash * 0x01000193) >>> 0;
   }
   return hash.toString(16).padStart(8, '0');
+}
+
+function debugWallet() {
+  if (typeof window.opnet === 'undefined') {
+    showStatus('window.opnet not found!', 'error');
+    return;
+  }
+  const allMethods = [];
+  let obj = window.opnet;
+  while (obj && obj !== Object.prototype) {
+    Object.getOwnPropertyNames(obj).forEach(k => { if (!allMethods.includes(k)) allMethods.push(k); });
+    obj = Object.getPrototypeOf(obj);
+  }
+  showStatus('METHODS: ' + allMethods.join(' | '), 'info');
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
