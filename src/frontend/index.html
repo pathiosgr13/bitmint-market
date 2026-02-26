@@ -808,15 +808,15 @@ async function mintNFT() {
     if (typeof window.opnet !== 'undefined') {
       overlayMsg.textContent = 'Sign in OP_WALLET...';
 
-      // Debug: log all available methods to console
+      // Debug: show all available methods ON SCREEN
       const allMethods = [];
       let obj = window.opnet;
       while (obj && obj !== Object.prototype) {
         Object.getOwnPropertyNames(obj).forEach(k => { if (!allMethods.includes(k)) allMethods.push(k); });
         obj = Object.getPrototypeOf(obj);
       }
-      console.log('[BitMint] window.opnet methods:', allMethods);
-      console.log('[BitMint] window.opnet object:', window.opnet);
+      showStatus('OP_WALLET methods: ' + allMethods.join(', '), 'info');
+      await sleep(8000);
 
       const p = window.opnet;
       const selector = encodeSelector('mint()');
